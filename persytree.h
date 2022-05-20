@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define NMODS 3
-#define NVERSIONS 100 /* maximum number of safe inclusions/deletions */
+#define NVERSIONS 101 /* maximum number of safe inclusions/deletions */
 
 
 /*! \struct persytree_t
@@ -15,8 +15,7 @@
  *  changes made to its content.
  */
 typedef struct persytree_t{
-	unsigned int n_versions;
-	unsigned short root_changes;
+	unsigned int last_version;
 	struct node_t * root[NVERSIONS];
 } persytree_t;
 
@@ -26,6 +25,7 @@ struct mod_t {
 		int ival;
 		struct node_t * pval;
 	};
+	unsigned int version;
 };
 
 typedef struct node_t {
