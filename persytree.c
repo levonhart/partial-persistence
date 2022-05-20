@@ -2,14 +2,14 @@
 #include "persytree.h"
 
 /* convenience macros: */
-#define node_set(NODE, MEMBER, VALUE) do { \
-	NODE->MEMBER = VALUE; \
+#define node_set(NODE, MEMBER, VALUE, TYPE) do { \
+	(NODE)->MEMBER = (TYPE)(VALUE); \
 	/* TODO */ \
 	/* ptrdiff_t _offset = offsetof(node,member) */ \
 	/* _p_node_set(node, _offset, value); */ \
 } while (0);
 
-#define node_get(NODE, MEMBER, VERSION) (NODE)->MEMBER
+#define node_get(NODE, MEMBER, VERSION, TYPE) (TYPE)((NODE)->MEMBER)
 
 void _node_set(node_t * node, ptrdiff_t member, void * value);
 /* node_t * _node_get(node_t * node, ptrdiff_t member); */

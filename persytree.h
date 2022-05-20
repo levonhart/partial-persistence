@@ -30,6 +30,7 @@ struct mod_t {
 
 typedef struct node_t {
 	int key;
+	char color;
 	struct node_t * left,
 				  * right,
 				  * parent;
