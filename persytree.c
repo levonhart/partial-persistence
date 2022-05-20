@@ -27,14 +27,17 @@ persytree_t * persytree_create(){
 
 
 bool persytree_insert(persytree_t * tree, int key){
+	return false;
 }
 
 
 bool persytree_delete(persytree_t * tree, int key){
+	return false;
 }
 
 
 node_t * persytree_search(persytree_t * tree, unsigned version, int key){
+	return NULL;
 }
 
 
