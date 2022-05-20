@@ -9,7 +9,7 @@
 	/* _p_node_set(node, _offset, value); */ \
 } while (0);
 
-#define node_get(NODE, MEMBER) (NODE)->MEMBER
+#define node_get(NODE, MEMBER, VERSION) (NODE)->MEMBER
 
 void _node_set(node_t * node, ptrdiff_t member, void * value);
 /* node_t * _node_get(node_t * node, ptrdiff_t member); */
