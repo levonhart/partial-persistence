@@ -66,51 +66,87 @@ bool persytree_delete(persytree_t * tree, int key){
 	if (version == NVERSIONS) return (--tree->last_version) && false;
 	tree->root[version] = tree->root[version-1];
 
+	// node_t* x, *y, *z;
+	// z = persytree_search(tree, version, key);
+
+	// y = z;
+	// char y_original_color = node_get(y, color, version, char);
+
+	// if(node_get(z, left, version, node_t*) == NULL){
+	// 	x = node_get(z, right, version, node_t*);
+	// 	transplant(tree, z, x);
+	
+	// } else if(node_get(z, right, version, node_t*) == NULL){
+	// 	x = node_get(z, right, version, node_t*);
+	// 	transplant(tree, z, x);
+
+	// } else {
+	// 	node_t* right_z = node_get(z, right, version, node_t*);
+	// 	y = persytree_minimum(tree, version, right_z);
+		
+	// 	y_original_color = node_get(y, color, version, char);
+	// 	x = node_get(y, right, version, node_t*);
+
+	// 	if(node_get(y, parent, version, node_t*) == z)
+	// 		node_set(x, parent, y, version, node_t*)
+	// 	else{
+	// 		node_t* y_right = node_get(y, right, version, node_t*);
+	// 		transplant(tree, y, y_right);
+	// 		node_t* z_right = node_get(z, right, version, node_t*);
+	// 		node_set(y, right, z_right, version, node_t*);
+	// 		node_set(y_right, parent, y, version, node_t*);
+
+	// 	}
+	// 	transplant(tree, z, y);
+	// 	node_t* z_left = node_get(z, left, version, node_t*);
+	// 	node_set(y, left, z_left, version, node_t*);
+
+	// 	node_t* y_left = node_get(y, left, version, node_t*);
+	// 	node_set(y_left, parent, y, version, node_t*);
+
+	// 	char z_color = node_get(z, color, version, char);
+	// 	node_set(y, color, z_color, version, char);
+
+	// 	if(y_original_color == 'b')
+	// 		delete_fixup(tree, x);
+
+	// }
+
+
 	node_t* x, *y, *z;
 	z = persytree_search(tree, version, key);
 
-	y = z;
-	char y_original_color = node_get(y, color, version, char);
-
-	if(node_get(z, left, version, node_t*) == NULL){
-		x = node_get(z, right, version, node_t*);
-		transplant(tree, z, x);
+	if(node_get(z, left, version, node_t*) == NULL ||
+		node_get(z, right, version, node_t*) == NULL)
+		y = z;
+	else
+		y = persytree_successor(tree, version, key);
 	
-	} else if(node_get(z, right, version, node_t*) == NULL){
-		x = node_get(z, right, version, node_t*);
-		transplant(tree, z, x);
 
-	} else {
-		node_t* right_z = node_get(z, right, version, node_t*);
-		y = persytree_minimum(tree, version, right_z);
-		
-		y_original_color = node_get(y, color, version, char);
+	if(node_get(y, left, version, node_t*) != NULL)
+		x = node_get(y, left, version, node_t*);
+	else
 		x = node_get(y, right, version, node_t*);
 
-		if(node_get(y, parent, version, node_t*) == z)
-			node_set(x, parent, y, version, node_t*)
-		else{
-			node_t* y_right = node_get(y, right, version, node_t*);
-			transplant(tree, y, y_right);
-			node_t* z_right = node_get(z, right, version, node_t*);
-			node_set(y, right, z_right, version, node_t*);
-			node_set(y_right, parent, y, version, node_t*);
+	node_t* y_parent = node_get(y, parent, version, node_t*);
+	node_set(x, parent, y_parent, version, node_t*);
 
-		}
-		transplant(tree, z, y);
-		node_t* z_left = node_get(z, left, version, node_t*);
-		node_set(y, left, z_left, version, node_t*);
+	if(y_parent == NULL)
+		tree->root[version] = x;
+	else 
+		if(y == node_get(y_parent, left, version, node_t*)){
+			node_set(y_parent, left, x, version, node_t*);
+		} else node_set(y_parent, right, x, version, node_t*);
 
-		node_t* y_left = node_get(y, left, version, node_t*);
-		node_set(y_left, parent, y, version, node_t*);
-
-		char z_color = node_get(z, color, version, char);
-		node_set(y, color, z_color, version, char);
-
-		if(y_original_color == 'b')
-			delete_fixup(tree, x);
-
+	if(y != z){
+		int y_key = node_get(y, key, version, int);
+		node_set(z, key, y_key, version, int);
+		// copy data to z
 	}
+
+	if(node_get(y, color, version, char) == 'b')
+		delete_fixup(tree, x);
+
 
 
 	return true;
@@ -134,7 +170,7 @@ node_t * persytree_search(persytree_t * tree, unsigned version, int key){
 	return NULL;
 }
 
-int persytree_predecessor(persytree_t * tree, unsigned version, int key) {
+node_t* persytree_predecessor(persytree_t * tree, unsigned version, int key) {
 	node_t * pred=NULL, * prev=NULL, * iter=tree->root[version];
 	while (iter != NULL) {
 		prev = iter;
@@ -145,10 +181,10 @@ int persytree_predecessor(persytree_t * tree, unsigned version, int key) {
 			iter = node_get(iter, left, version, node_t*);
 		}
 	}
-	return pred != NULL ? node_get(pred, key, version, int) : INT_MIN;
+	return pred;
 }
 
-int persytree_successor(persytree_t * tree, unsigned version, int key) {
+node_t* persytree_successor(persytree_t * tree, unsigned version, int key) {
 	node_t * succ=NULL, * prev=NULL, * iter=tree->root[version];
 	while (iter != NULL) {
 		prev = iter;
@@ -159,7 +195,7 @@ int persytree_successor(persytree_t * tree, unsigned version, int key) {
 			iter = node_get(iter, right, version, node_t*);
 		}
 	}
-	return succ != NULL ? node_get(succ, key, ver, int) : INT_MAX;
+	return succ;
 }
 
 node_t* persytree_minimum(persytree_t * tree, unsigned version, node_t* root){
