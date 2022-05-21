@@ -1,5 +1,6 @@
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 #include "persytree.h"
 
 /* [> convenience macros: <] */
@@ -7,13 +8,13 @@
 /*     (NODE)->MEMBER = (TYPE)(VALUE); \ */
 /*     [> TODO <] \ */
 /*     [> ptrdiff_t _offset = offsetof(node,member) <] \ */
-/*     [> _p_node_set(node, _offset, value); <] \ */
+/*     [> _ppersytree_node_set(node, _offset, value); <] \ */
 /* } while (0); */
 /*  */
 /* #define node_get(NODE, MEMBER, VERSION, TYPE) (TYPE)((NODE)->MEMBER) */
 /*  */
-/* [> void _node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize); <] */
-/* void * _node_get(node_t * node, ptrdiff_t member, unsigned version); */
+void persytree_node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize);
+void * persytree_node_get(node_t * node, ptrdiff_t member, unsigned version);
 
 void rotate_right(persytree_t * tree, node_t * node);
 void rotate_left(persytree_t * tree, node_t * node);
@@ -35,7 +36,8 @@ bool persytree_insert(persytree_t * tree, int key){
 	tree->root[version] = tree->root[version-1];
 	node_t * new = malloc(sizeof(node_t));
 	new->key = key; new->n_mods=0; new->next_version=NULL;
-	new->left = NULL; new->right=NULL; new->color='r';
+	new->left=NULL; new->right=NULL; new->color='r';
+	new->created_at=version;
 
 	node_t * prev=NULL, * iter=tree->root[version];
 	while (iter != NULL) {
@@ -180,8 +182,6 @@ void rotate_left(persytree_t * tree, node_t * node){
 	node_set(node, parent, right_child, version, node_t*);
 }
 
-#include <stdio.h>
-
 void insert_fixup(persytree_t * tree, node_t * node){
 	unsigned version = tree->last_version;
 	node_t * iter = node_get(node, parent, version, node_t*), * temp;
@@ -231,5 +231,34 @@ void insert_fixup(persytree_t * tree, node_t * node){
 
 void delete_fixup(persytree_t * tree, node_t * node){
 	unsigned version = tree->last_version;
+}
+
+
+void persytree_node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize){
+	void * field;
+	if (node->created_at == version) {
+		memcpy(((char *) node) + member, value, msize);
+	} else {
+		unsigned  i = 0;
+		while(i < node->n_mods){
+			if(node->mods[i].member == member &&
+					node->mods[i].version == version) {
+				field = &(node->mods[i].ival);
+				memcpy(field, value, msize);
+				return;
+			}
+			i++;
+		}
+		if (i < NMODS) {
+			node->n_mods += 1;
+			node->mods[i].member = member;
+			node->mods[i].version = version;
+			field = &(node->mods[i].ival);
+			memcpy(field, value, msize);
+		}
+	}
+}
+
+void * persytree_node_get(node_t * node, ptrdiff_t member, unsigned version) {
 }
 

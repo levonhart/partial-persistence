@@ -6,7 +6,7 @@ LDFLAGS :=
 TARGETS:= main
 MAIN   := main.o
 OBJ    := main.o persytree.o
-DEPS   :=
+DEPS   := persytree.h
 
 .PHONY: all, clean
 

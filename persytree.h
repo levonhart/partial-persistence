@@ -20,14 +20,14 @@ typedef struct persytree_t{
 	struct node_t * root[NVERSIONS];
 } persytree_t;
 
-struct mod_t {
+typedef struct mod_t {
 	ptrdiff_t member;
 	union {
 		int ival;
 		struct node_t * pval;
 	};
 	unsigned int version;
-};
+} mod_t;
 
 typedef struct node_t {
 	int key;
@@ -36,6 +36,7 @@ typedef struct node_t {
 				  * right,
 				  * parent;
 	unsigned short n_mods;
+	unsigned created_at;
 	struct mod_t mods[NMODS];
 	struct node_t * next_version;
 } node_t;
@@ -51,17 +52,16 @@ int           persytree_minimum(persytree_t * tree, unsigned version);
 int           persytree_minimum(persytree_t * tree, unsigned version);
 
 
+void persytree_node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize);
+void * persytree_node_get(node_t * node, ptrdiff_t member, unsigned version);
+
+#include <string.h>
 /* convenience macros: */
 #define node_set(NODE, MEMBER, VALUE, VERSION, TYPE) do { \
-	(NODE)->MEMBER = (TYPE)(VALUE); \
-	/* TODO */ \
-	/* ptrdiff_t _offset = offsetof(node,member) */ \
-	/* _p_node_set(node, _offset, value); */ \
+	TYPE _new_value = (VALUE); \
+	persytree_node_set((NODE), offsetof(node_t,MEMBER), &_new_value, (VERSION), sizeof(TYPE)); \
 } while (0);
 
 #define node_get(NODE, MEMBER, VERSION, TYPE) (TYPE)((NODE)->MEMBER)
-
-/* void _node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize); */
-void * _node_get(node_t * node, ptrdiff_t member, unsigned version);
 
 #endif /* end of include guard: PERSYTREE_H */
