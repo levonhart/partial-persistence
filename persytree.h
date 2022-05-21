@@ -2,6 +2,7 @@
 #define PERSYTREE_H
 
 #include <stddef.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #define NMODS 3
@@ -44,8 +45,23 @@ persytree_t * persytree_create();
 bool          persytree_insert(persytree_t * tree, int key);
 bool          persytree_delete(persytree_t * tree, int key);
 node_t *      persytree_search(persytree_t * tree, unsigned version, int key);
-/* node_t *      persytree_predecessor(persytree_t * tree, unsigned version, int key); */
-/* node_t *      persytree_successor(persytree_t * tree, unsigned version, int key); */
+int           persytree_predecessor(persytree_t * tree, unsigned version, int key);
+int           persytree_successor(persytree_t * tree, unsigned version, int key);
+int           persytree_minimum(persytree_t * tree, unsigned version);
+int           persytree_minimum(persytree_t * tree, unsigned version);
 
+
+/* convenience macros: */
+#define node_set(NODE, MEMBER, VALUE, VERSION, TYPE) do { \
+	(NODE)->MEMBER = (TYPE)(VALUE); \
+	/* TODO */ \
+	/* ptrdiff_t _offset = offsetof(node,member) */ \
+	/* _p_node_set(node, _offset, value); */ \
+} while (0);
+
+#define node_get(NODE, MEMBER, VERSION, TYPE) (TYPE)((NODE)->MEMBER)
+
+/* void _node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize); */
+void * _node_get(node_t * node, ptrdiff_t member, unsigned version);
 
 #endif /* end of include guard: PERSYTREE_H */

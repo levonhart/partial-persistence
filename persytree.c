@@ -1,18 +1,19 @@
+#include <limits.h>
 #include <stdlib.h>
 #include "persytree.h"
 
-/* convenience macros: */
-#define node_set(NODE, MEMBER, VALUE, VERSION, TYPE) do { \
-	(NODE)->MEMBER = (TYPE)(VALUE); \
-	/* TODO */ \
-	/* ptrdiff_t _offset = offsetof(node,member) */ \
-	/* _p_node_set(node, _offset, value); */ \
-} while (0);
-
-#define node_get(NODE, MEMBER, VERSION, TYPE) (TYPE)((NODE)->MEMBER)
-
-/* void _node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize); */
-void * _node_get(node_t * node, ptrdiff_t member, unsigned version);
+/* [> convenience macros: <] */
+/* #define node_set(NODE, MEMBER, VALUE, VERSION, TYPE) do { \ */
+/*     (NODE)->MEMBER = (TYPE)(VALUE); \ */
+/*     [> TODO <] \ */
+/*     [> ptrdiff_t _offset = offsetof(node,member) <] \ */
+/*     [> _p_node_set(node, _offset, value); <] \ */
+/* } while (0); */
+/*  */
+/* #define node_get(NODE, MEMBER, VERSION, TYPE) (TYPE)((NODE)->MEMBER) */
+/*  */
+/* [> void _node_set(node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize); <] */
+/* void * _node_get(node_t * node, ptrdiff_t member, unsigned version); */
 
 void rotate_right(persytree_t * tree, node_t * node);
 void rotate_left(persytree_t * tree, node_t * node);
@@ -65,7 +66,71 @@ bool persytree_delete(persytree_t * tree, int key){
 
 
 node_t * persytree_search(persytree_t * tree, unsigned version, int key){
+	unsigned ver = tree->last_version < version ? tree->last_version : version;
+	node_t * iter=tree->root[ver];
+	while (iter != NULL) {
+		int i = node_get(iter, key, ver, int);
+		if (key == i) {
+			return iter;
+		}
+		if (key < i) {
+			iter = node_get(iter, left, ver, node_t*);
+		} else {
+			iter = node_get(iter, right, ver, node_t*);
+		}
+	}
 	return NULL;
+}
+
+int persytree_predecessor(persytree_t * tree, unsigned version, int key) {
+	unsigned ver = tree->last_version < version ? tree->last_version : version;
+	node_t * pred=NULL, * prev=NULL, * iter=tree->root[ver];
+	while (iter != NULL) {
+		prev = iter;
+		if (key > node_get(iter, key, ver, int)) {
+			pred = iter;
+			iter = node_get(iter, right, ver, node_t*);
+		} else {
+			iter = node_get(iter, left, ver, node_t*);
+		}
+	}
+	return node_get(pred, key, ver, int);
+	return pred != NULL ? node_get(pred, key, ver, int) : INT_MIN;
+}
+
+int persytree_successor(persytree_t * tree, unsigned version, int key) {
+	unsigned ver = tree->last_version < version ? tree->last_version : version;
+	node_t * succ=NULL, * prev=NULL, * iter=tree->root[ver];
+	while (iter != NULL) {
+		prev = iter;
+		if (key < node_get(iter, key, ver, int)) {
+			succ = iter;
+			iter = node_get(iter, left, ver, node_t*);
+		} else {
+			iter = node_get(iter, right, ver, node_t*);
+		}
+	}
+	return succ != NULL ? node_get(succ, key, ver, int) : INT_MAX;
+}
+
+int persytree_minimum(persytree_t * tree, unsigned version){
+	unsigned ver = tree->last_version < version ? tree->last_version : version;
+	node_t * prev=NULL, * iter=tree->root[ver];
+	while (iter != NULL) {
+		prev = iter;
+		iter = node_get(iter, left, ver, node_t*);
+	}
+	return node_get(prev, key, ver, int);
+}
+
+int persytree_maximum(persytree_t * tree, unsigned version){
+	unsigned ver = tree->last_version < version ? tree->last_version : version;
+	node_t * prev=NULL, * iter=tree->root[ver];
+	while (iter != NULL) {
+		prev = iter;
+		iter = node_get(iter, right, ver, node_t*);
+	}
+	return node_get(prev, key, ver, int);
 }
 
 
@@ -122,6 +187,7 @@ void rotate_left(persytree_t * tree, node_t * node){
 
 
 void insert_fixup(persytree_t * tree, node_t * node){
+
 }
 
 
