@@ -47,8 +47,8 @@ bool          persytree_delete(persytree_t * tree, int key);
 node_t *      persytree_search(persytree_t * tree, unsigned version, int key);
 int           persytree_predecessor(persytree_t * tree, unsigned version, int key);
 int           persytree_successor(persytree_t * tree, unsigned version, int key);
-int           persytree_minimum(persytree_t * tree, unsigned version);
-int           persytree_minimum(persytree_t * tree, unsigned version);
+node_t*       persytree_minimum(persytree_t * tree, unsigned version, node_t* root);
+node_t*       persytree_minimum(persytree_t * tree, unsigned version, node_t* root);
 
 
 /* convenience macros: */
