@@ -45,8 +45,10 @@ void parse_file(FILE * file, persytree_t * dest, FILE * out){
 			fprintf(out, "REM %d\n", value);
 		} else if (strncmp(command, "SUC", COMMAND_SIZE) == 0) {
 			fscanf(file, "%d %u", &value, &version);
-			fprintf(out, "SUC %d %u\n%d\n", value, version,
-					persytree_successor(dest, value, version));
+			int succ = persytree_successor(dest, version, value);
+			fprintf(out, "SUC %d %u\n", value, version);
+			if (succ == INT_MAX) fprintf(out, "INF\n");
+			else fprintf(out, "%d\n", succ);
 		} else if (strncmp(command, "IMP", COMMAND_SIZE) == 0) {
 			fscanf(file, "%u", &version);
 			fprintf(out, "IMP %u\n", version);
