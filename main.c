@@ -40,21 +40,21 @@ void parse_file(FILE * file, persytree_t * dest, FILE * out){
 			persytree_insert(dest, value);
 			fprintf(out, "INC %d\n", value);
 
-			printf("root:	%d\n",
-					(int) dest->root[dest->last_version]);
-			printf(	"(k:%d l:%d r:%d p:%d)\n",
-					(int) dest->root[dest->last_version]->key,
-					(int) dest->root[dest->last_version]->left,
-					(int) dest->root[dest->last_version]->right);
-			printf(" mods:{ \n");
-			for (int j = 0; dest->root[dest->last_version] != NULL && j < dest->root[dest->last_version]->n_mods; j++) {
-				printf(	"< %4d  %4d  %u >\n",
-						(int) dest->root[dest->last_version]->mods[j].member,
-						dest->root[dest->last_version]->mods[j].ival,
-						dest->root[dest->last_version]->mods[j].version
-						);
-			}
-			printf(" }\n\n");
+			/* printf("root:	%d\n", */
+			/*         (int) dest->root[dest->last_version]); */
+			/* printf(	"(k:%d l:%d r:%d p:%d)\n", */
+			/*         (int) dest->root[dest->last_version]->key, */
+			/*         (int) dest->root[dest->last_version]->left, */
+			/*         (int) dest->root[dest->last_version]->right); */
+			/* printf(" mods:{ \n"); */
+			/* for (int j = 0; dest->root[dest->last_version] != NULL && j < dest->root[dest->last_version]->n_mods; j++) { */
+			/*     printf(	"< %4d  %4d  %u >\n", */
+			/*             (int) dest->root[dest->last_version]->mods[j].member, */
+			/*             dest->root[dest->last_version]->mods[j].ival, */
+			/*             dest->root[dest->last_version]->mods[j].version */
+			/*             ); */
+			/* } */
+			/* printf(" }\n\n"); */
 		} else if (strncmp(command, "REM", COMMAND_SIZE) == 0) {
 			fscanf(file, "%d", &value);
 			persytree_delete(dest, value);
