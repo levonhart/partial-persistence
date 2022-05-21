@@ -312,8 +312,13 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 }
 
 void * persytree_node_get(persytree_t * tree, node_t * node, ptrdiff_t member, unsigned version) {
-	void * field = ((char *) node) + member;
 	unsigned i;
+	while (node->next_version != NULL &&
+			node->next_version->created_at <= version) {
+		node = node->next_version;
+		i++;
+	}
+	void * field = ((char *) node) + member;
 	for (i = 0; i < node->n_mods; i++){
 		if(node->mods[i].member == member &&
 				node->mods[i].version <= version) {
