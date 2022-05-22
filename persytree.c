@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "persytree.h"
 
 /* [> convenience macros: <] */
@@ -254,6 +255,7 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 			}
 			i++;
 		}
+		assert(i==node->n_mods);
 		if (i < NMODS) {
 			node->n_mods += 1;
 			node->mods[i].member = member;
@@ -270,14 +272,16 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 			new->right = node->right;
 			new->parent = node->parent;
 			new->n_mods=0;
-			new->created_at=version;
-			new->next_version=NULL;
+			new->created_at = version;
+			new->next_version = NULL;
 			node->next_version = new;
 
 			for (i = 0; i < node->n_mods; i++) {
-				void * field = ((char *) new) + node->mods[i].member;
-				void * mod_value = &(node->mods[i].ival);
-				size_t field_size = node->mods[i].msize;
+				void * field, * mod_value;
+				size_t field_size;
+				field = ((char *) new) + node->mods[i].member;
+				mod_value = &(node->mods[i].ival);
+				field_size = node->mods[i].msize;
 				memcpy(field, mod_value, field_size);
 			}
 
@@ -312,13 +316,13 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 }
 
 void * persytree_node_get(persytree_t * tree, node_t * node, ptrdiff_t member, unsigned version) {
-	unsigned i;
+	assert(node != NULL);
 	while (node->next_version != NULL &&
 			node->next_version->created_at <= version) {
 		node = node->next_version;
-		i++;
 	}
 	void * field = ((char *) node) + member;
+	unsigned i;
 	for (i = 0; i < node->n_mods; i++){
 		if(node->mods[i].member == member &&
 				node->mods[i].version <= version) {
