@@ -5,7 +5,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#define NMODS 30
+#define NMODS 10
 #define NVERSIONS 101 /* maximum number of safe inclusions/deletions */
 
 

@@ -469,7 +469,7 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 
 			for (i = 0; i < node->n_mods; i++) {
 				void * field, * mod_value;
-				size_t field_size;
+				short field_size;
 				field = ((char *) new) + node->mods[i].member;
 				mod_value = &(node->mods[i].ival);
 				field_size = node->mods[i].msize;
