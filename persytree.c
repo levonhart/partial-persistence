@@ -71,6 +71,8 @@ bool persytree_delete(persytree_t * tree, int key){
 	node_t* x, *y, *z;
 	z = persytree_search(tree, version, key);
 
+	if(z == NULL) return false;
+
 	if(node_get(z, left, version, node_t*) == NULL ||
 		node_get(z, right, version, node_t*) == NULL)
 		y = z;
@@ -87,12 +89,12 @@ bool persytree_delete(persytree_t * tree, int key){
 	if(x != NULL)
 		node_set(x, parent, y_parent, version, node_t*);
 
-	if(y_parent == NULL)
+	if(y_parent == NULL) {
 		tree->root[version] = x;
-	else 
-		if(y == node_get(y_parent, left, version, node_t*)){
+		return true;
+	} else if(y == node_get(y_parent, left, version, node_t*)){
 			node_set(y_parent, left, x, version, node_t*);
-		} else node_set(y_parent, right, x, version, node_t*);
+	} else node_set(y_parent, right, x, version, node_t*);
 
 	if(y != z){
 		int y_key = node_get(y, key, version, int);
@@ -100,8 +102,18 @@ bool persytree_delete(persytree_t * tree, int key){
 		// copy data to z
 	}
 
-	if(node_get(y, color, version, char) == 'b')
-		delete_fixup(tree, x);
+	if(node_get(y, color, version, char) == 'b'){
+		
+		if(x != NULL){
+			delete_fixup(tree, x);
+
+			return true;
+		}
+		assert(y_parent != NULL);
+		node_t nil = {.parent=y_parent, .color='b', .n_mods=0, .next_version=NULL /*TODO:, .created_at*/ };
+		delete_fixup(tree, &nil);
+		
+	}
 
 
 
