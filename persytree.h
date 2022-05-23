@@ -65,8 +65,13 @@ void * persytree_node_get(persytree_t * tree, node_t * node,
 	TYPE _new_value = (VALUE); \
 	persytree_node_set((TREE), (NODE), offsetof(node_t,MEMBER), &_new_value, (VERSION), sizeof(TYPE)); \
 } while (0);
+// #define node_set(TREE, NODE, MEMBER, VALUE, VERSION, TYPE) \
+//     (NODE)->MEMBER = (TYPE) VALUE;
 
 #define node_get(TREE, NODE, MEMBER, VERSION, TYPE) \
 	(*((TYPE *) persytree_node_get((TREE),(NODE),offsetof(node_t,MEMBER), (VERSION))))
+
+// #define node_get(TREE, NODE, MEMBER, VERSION, TYPE) \
+//     ((TYPE) ((NODE)->MEMBER))
 
 #endif /* end of include guard: PERSYTREE_H */
