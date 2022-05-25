@@ -208,6 +208,7 @@ void rotate_right(persytree_t * tree, node_t * node){
 	if (right_grandchild != NULL) {
 		node_set(tree, right_grandchild, parent, node, version, node_t*);
 	}
+	node_set(tree, left_child, right, node, version, node_t*);
 	node_set(tree, left_child, parent, node_parent, version, node_t*);
 	if (node_parent == NULL) {
 		tree->root[version] = left_child;
@@ -221,7 +222,6 @@ void rotate_right(persytree_t * tree, node_t * node){
 			node_set(tree, node_parent, left, left_child, version, node_t*);
 		}
 	}
-	node_set(tree, left_child, right, node, version, node_t*);
 	node_set(tree, node, parent, left_child, version, node_t*);
 }
 
@@ -237,6 +237,7 @@ void rotate_left(persytree_t * tree, node_t * node){
 	if (left_grandchild != NULL) {
 		node_set(tree, left_grandchild, parent, node, version, node_t*);
 	}
+	node_set(tree, right_child, left, node, version, node_t*);
 	node_set(tree, right_child, parent, node_parent, version, node_t*);
 	if (node_parent == NULL) {
 		tree->root[version] = right_child;
@@ -250,7 +251,6 @@ void rotate_left(persytree_t * tree, node_t * node){
 			node_set(tree, node_parent, right, right_child, version, node_t*);
 		}
 	}
-	node_set(tree, right_child, left, node, version, node_t*);
 	node_set(tree, node, parent, right_child, version, node_t*);
 }
 
