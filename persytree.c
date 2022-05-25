@@ -467,15 +467,19 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 		memcpy(((char *) node) + member, value, msize);
 	} else {
 		unsigned  i = 0;
+		void * current = ((char*)node) + member;
 		while(i < node->n_mods){
-			if(node->mods[i].member == member &&
-					node->mods[i].version == version) {
-				field = &(node->mods[i].ival);
-				memcpy(field, value, msize);
-				return;
+			if(node->mods[i].member == member){
+				current = node->mods + i;
+				if (node->mods[i].version == version) {
+					field = &(node->mods[i].ival);
+					memcpy(field, value, msize);
+					return;
+				}
 			}
 			i++;
 		}
+		if (memcmp(current,value,msize) == 0) return;
 		assert(i==node->n_mods);
 		if (i < NMODS) {
 			node->n_mods += 1;
