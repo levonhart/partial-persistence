@@ -37,8 +37,8 @@ typedef struct node_t {
 				  * right,
 				  * parent;
 	unsigned short n_mods;
-	unsigned created_at;
 	struct mod_t mods[NMODS];
+	unsigned created_at;
 	struct node_t * next_version;
 } node_t;
 
