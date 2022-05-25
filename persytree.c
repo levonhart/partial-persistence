@@ -208,7 +208,6 @@ void rotate_right(persytree_t * tree, node_t * node){
 	if (right_grandchild != NULL) {
 		node_set(tree, right_grandchild, parent, node, version, node_t*);
 	}
-	node_set(tree, left_child, right, node, version, node_t*);
 	node_set(tree, left_child, parent, node_parent, version, node_t*);
 	if (node_parent == NULL) {
 		tree->root[version] = left_child;
@@ -222,6 +221,7 @@ void rotate_right(persytree_t * tree, node_t * node){
 			node_set(tree, node_parent, left, left_child, version, node_t*);
 		}
 	}
+	node_set(tree, left_child, right, node, version, node_t*);
 	node_set(tree, node, parent, left_child, version, node_t*);
 }
 
@@ -237,7 +237,6 @@ void rotate_left(persytree_t * tree, node_t * node){
 	if (left_grandchild != NULL) {
 		node_set(tree, left_grandchild, parent, node, version, node_t*);
 	}
-	node_set(tree, right_child, left, node, version, node_t*);
 	node_set(tree, right_child, parent, node_parent, version, node_t*);
 	if (node_parent == NULL) {
 		tree->root[version] = right_child;
@@ -251,6 +250,7 @@ void rotate_left(persytree_t * tree, node_t * node){
 			node_set(tree, node_parent, right, right_child, version, node_t*);
 		}
 	}
+	node_set(tree, right_child, left, node, version, node_t*);
 	node_set(tree, node, parent, right_child, version, node_t*);
 }
 
@@ -517,13 +517,24 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 			node_t * left = new->left,
 				   * right = new->right,
 				   * parent = new->parent;
+			ptrdiff_t leftp = offsetof(node_t,left),
+					  rightp = offsetof(node_t,right),
+					  parentp = offsetof(node_t,parent);
 			if (left != NULL) {
-				persytree_node_set(tree, left, offsetof(node_t,parent),
-								   &new, version, sizeof(node_t*));
+				node_t * child_parent = node_get(tree, left, parent, version, node_t*);
+				if (node == child_parent ||
+						(child_parent != NULL &&
+						node_key == node_get(tree, child_parent, key, version, int)))
+					persytree_node_set(tree, left, parentp, &new,
+					                   version, sizeof(node_t*));
 			}
 			if (right != NULL) {
-				persytree_node_set(tree, right, offsetof(node_t,parent),
-								   &new, version, sizeof(node_t*));
+				node_t * child_parent = node_get(tree, right, parent, version, node_t*);
+				if (node == child_parent ||
+						(child_parent != NULL &&
+						node_key == node_get(tree, child_parent, key, version, int)))
+					persytree_node_set(tree, right, parentp, &new,
+					                   version, sizeof(node_t*));
 			}
 			if (parent != NULL) {
 				node_t * left_sibling = node_get(tree, parent, left, version, node_t*);
