@@ -11,7 +11,10 @@
 int print_tree(persytree_t * tree, node_t * root, unsigned version, FILE * out, unsigned depth){
 	int retl, retr, retp;
 
-	if (root == NULL) return 0;
+	if (root == NULL) {
+		fprintf(out, "nil");
+		return 0;
+	}
 
 	node_t * left_child = node_get(tree, root, left, version, node_t*);
 	node_t * right_child = node_get(tree, root, right, version, node_t*);

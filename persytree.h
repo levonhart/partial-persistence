@@ -5,7 +5,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#define NMODS 1
+#define NMODS 6
 #define NVERSIONS 101 /* maximum number of safe inclusions/deletions */
 
 
@@ -53,7 +53,7 @@ node_t *      persytree_minimum(persytree_t * tree, unsigned version, node_t* ro
 node_t *      persytree_minimum(persytree_t * tree, unsigned version, node_t* root);
 
 
-void persytree_node_set(persytree_t * tree, node_t ** nodeptr,
+void persytree_node_set(persytree_t * tree, node_t * node,
 		ptrdiff_t member, void * value, unsigned version,
 		size_t msize);
 void * persytree_node_get(persytree_t * tree, node_t * node,
@@ -61,9 +61,9 @@ void * persytree_node_get(persytree_t * tree, node_t * node,
 
 #include <string.h>
 /* convenience macros: */
-#define node_set(TREE, NODEPTR, MEMBER, VALUE, VERSION, TYPE) do { \
+#define node_set(TREE, NODE, MEMBER, VALUE, VERSION, TYPE) do { \
 	TYPE _new_value = (VALUE); \
-	persytree_node_set((TREE), (NODEPTR), offsetof(node_t,MEMBER), &_new_value, (VERSION), sizeof(TYPE)); \
+	persytree_node_set((TREE), (NODE), offsetof(node_t,MEMBER), &_new_value, (VERSION), sizeof(TYPE)); \
 } while (0);
 // #define node_set(TREE, NODE, MEMBER, VALUE, VERSION, TYPE) \
 //     (NODE)->MEMBER = (TYPE) VALUE;

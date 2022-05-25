@@ -7,16 +7,16 @@
 
 
 /* [> convenience macros: <] */
-/* #define node_set(tree, &NODE, MEMBER, VALUE, VERSION, TYPE) do { \ */
+/* #define node_set(tree, NODE, MEMBER, VALUE, VERSION, TYPE) do { \ */
 /*     (NODE)->MEMBER = (TYPE)(VALUE); \ */
 /*     [> TODO <] \ */
 /*     [> ptrdiff_t _offset = offsetof(node,member) <] \ */
-/*     [> _ppersytree_node_set(tree, &node, _offset, value); <] \ */
+/*     [> _ppersytree_node_set(tree, node, _offset, value); <] \ */
 /* } while (0); */
 /*  */
 /* #define node_get(tree, NODE, MEMBER, VERSION, TYPE) (TYPE)((NODE)->MEMBER) */
 /*  */
-void persytree_node_set(persytree_t * tree, node_t ** nodeptr, ptrdiff_t member, void * value, unsigned version, size_t msize);
+void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member, void * value, unsigned version, size_t msize);
 void * persytree_node_get(persytree_t * tree, node_t * node, ptrdiff_t member, unsigned version);
 
 void rotate_right(persytree_t * tree, node_t * node);
@@ -52,13 +52,13 @@ bool persytree_insert(persytree_t * tree, int key){
 			iter = node_get(tree, iter, right, version, node_t*);
 		}
 	}
-	node_set(tree, &new, parent, prev, version, node_t*);
+	node_set(tree, new, parent, prev, version, node_t*);
 	if (prev == NULL) {
 		tree->root[version] = new;
 	} else if (key < node_get(tree, prev, key, version, int)) {
-		node_set(tree, &prev, left, new, version, node_t*);
+		node_set(tree, prev, left, new, version, node_t*);
 	} else {
-		node_set(tree, &prev, right, new, version, node_t*);
+		node_set(tree, prev, right, new, version, node_t*);
 	}
 
 	insert_fixup(tree, new);
@@ -91,18 +91,18 @@ bool persytree_delete(persytree_t * tree, int key){
 
 	node_t* y_parent = node_get(tree, y, parent, version, node_t*);
 	if(x != NULL)
-		node_set(tree, &x, parent, y_parent, version, node_t*);
+		node_set(tree, x, parent, y_parent, version, node_t*);
 
 	if(y_parent == NULL) {
 		tree->root[version] = x;
 		return true;
 	} else if(y == node_get(tree, y_parent, left, version, node_t*)){
-			node_set(tree, &y_parent, left, x, version, node_t*);
-	} else node_set(tree, &y_parent, right, x, version, node_t*);
+			node_set(tree, y_parent, left, x, version, node_t*);
+	} else node_set(tree, y_parent, right, x, version, node_t*);
 
 	if(y != z){
 		int y_key = node_get(tree, y, key, version, int);
-		node_set(tree, &z, key, y_key, version, int);
+		node_set(tree, z, key, y_key, version, int);
 		// copy data to z
 	}
 
@@ -111,15 +111,17 @@ bool persytree_delete(persytree_t * tree, int key){
 		if(x != NULL){
 			delete_fixup(tree, x);
 		} else {
-			node_t nil = {.key = INT_MIN, .parent=y_parent, .color='b', .n_mods=0,
-				.next_version=NULL, .created_at = version };
+			node_t nil = {.key = INT_MIN, .color='b', .n_mods=0,
+				.next_version=NULL, .created_at = version,
+				.parent=y_parent->next_version == NULL ?
+						y_parent : y_parent->next_version };
 			if(x == node_get(tree, y_parent, left, version, node_t*)){
-					node_set(tree, &y_parent, left, &nil, version, node_t*);
-			} else node_set(tree, &y_parent, right, &nil, version, node_t*);
+					node_set(tree, y_parent, left, &nil, version, node_t*);
+			} else node_set(tree, y_parent, right, &nil, version, node_t*);
 			delete_fixup(tree, &nil);
 			if(&nil == node_get(tree, y_parent, left, version, node_t*)){
-					node_set(tree, &y_parent, left, NULL, version, node_t*);
-			} else node_set(tree, &y_parent, right, NULL, version, node_t*);
+					node_set(tree, y_parent, left, NULL, version, node_t*);
+			} else node_set(tree, y_parent, right, NULL, version, node_t*);
 		}
 	}
 	return true;
@@ -202,23 +204,25 @@ void rotate_right(persytree_t * tree, node_t * node){
 	node_t * left_child = node_get(tree, node, left, version, node_t*);
 	assert(left_child != NULL);
 	node_t * right_grandchild = node_get(tree, left_child, right, version, node_t*);
-	node_set(tree, &node, left, right_grandchild, version, node_t*);
+	node_set(tree, node, left, right_grandchild, version, node_t*);
 	if (right_grandchild != NULL) {
-		node_set(tree, &right_grandchild, parent, node, version, node_t*);
+		node_set(tree, right_grandchild, parent, node, version, node_t*);
 	}
-	node_set(tree, &left_child, parent, node_parent, version, node_t*);
+	node_set(tree, left_child, parent, node_parent, version, node_t*);
 	if (node_parent == NULL) {
 		tree->root[version] = left_child;
 	} else {
 		node_t * right_sibling = node_get(tree, node_parent, right, version, node_t*);
-		if (node == right_sibling) {
-			node_set(tree, &node_parent, right, left_child, version, node_t*);
+		int node_key = node_get(tree, node, key, version, int);
+		if (node == right_sibling ||
+				node_key == node_get(tree, right_sibling, key, version, int)) {
+			node_set(tree, node_parent, right, left_child, version, node_t*);
 		} else {
-			node_set(tree, &node_parent, left, left_child, version, node_t*);
+			node_set(tree, node_parent, left, left_child, version, node_t*);
 		}
 	}
-	node_set(tree, &left_child, right, node, version, node_t*);
-	node_set(tree, &node, parent, left_child, version, node_t*);
+	node_set(tree, left_child, right, node, version, node_t*);
+	node_set(tree, node, parent, left_child, version, node_t*);
 }
 
 
@@ -229,23 +233,25 @@ void rotate_left(persytree_t * tree, node_t * node){
 	node_t * right_child = node_get(tree, node, right, version, node_t*);
 	assert(right_child != NULL);
 	node_t * left_grandchild = node_get(tree, right_child, left, version, node_t*);
-	node_set(tree, &node, right, left_grandchild, version, node_t*);
+	node_set(tree, node, right, left_grandchild, version, node_t*);
 	if (left_grandchild != NULL) {
-		node_set(tree, &left_grandchild, parent, node, version, node_t*);
+		node_set(tree, left_grandchild, parent, node, version, node_t*);
 	}
-	node_set(tree, &right_child, parent, node_parent, version, node_t*);
+	node_set(tree, right_child, parent, node_parent, version, node_t*);
 	if (node_parent == NULL) {
 		tree->root[version] = right_child;
 	} else {
 		node_t * left_sibling = node_get(tree, node_parent, left, version, node_t*);
-		if (node == left_sibling) {
-			node_set(tree, &node_parent, left, right_child, version, node_t*);
+		int node_key = node_get(tree, node, key, version, int);
+		if (node == left_sibling ||
+				node_key == node_get(tree, left_sibling, key, version, int)) {
+			node_set(tree, node_parent, left, right_child, version, node_t*);
 		} else {
-			node_set(tree, &node_parent, right, right_child, version, node_t*);
+			node_set(tree, node_parent, right, right_child, version, node_t*);
 		}
 	}
-	node_set(tree, &right_child, left, node, version, node_t*);
-	node_set(tree, &node, parent, right_child, version, node_t*);
+	node_set(tree, right_child, left, node, version, node_t*);
+	node_set(tree, node, parent, right_child, version, node_t*);
 }
 
 void insert_fixup(persytree_t * tree, node_t * node){
@@ -259,9 +265,9 @@ void insert_fixup(persytree_t * tree, node_t * node){
 			node_t * right_sibling = node_get(tree, par, right, version, node_t*);
 			if (right_sibling !=NULL &&
 				  node_get(tree, right_sibling, color, version, char) == 'r') {
-				node_set(tree, &iter, color, 'b', version, char)
-				node_set(tree, &right_sibling, color, 'b', version, char)
-				node_set(tree, &par, color, 'r', version, char)
+				node_set(tree, iter, color, 'b', version, char)
+				node_set(tree, right_sibling, color, 'b', version, char)
+				node_set(tree, par, color, 'r', version, char)
 				node = par;
 				iter = node_get(tree, node, parent, version, node_t*);
 			} else {
@@ -269,16 +275,16 @@ void insert_fixup(persytree_t * tree, node_t * node){
 					rotate_left(tree, iter);
 					temp = node; node = iter; iter = temp;
 				}
-				node_set(tree, &iter, color, 'b', version, char);
-				node_set(tree, &par, color, 'r', version, char);
+				node_set(tree, iter, color, 'b', version, char);
+				node_set(tree, par, color, 'r', version, char);
 				rotate_right(tree, par);
 			}
 		} else {
 			if (left_sibling != NULL &&
 				  node_get(tree, left_sibling, color, version, char) == 'r') {
-				node_set(tree, &iter, color, 'b', version, char)
-				node_set(tree, &left_sibling, color, 'b', version, char)
-				node_set(tree, &par, color, 'r', version, char)
+				node_set(tree, iter, color, 'b', version, char)
+				node_set(tree, left_sibling, color, 'b', version, char)
+				node_set(tree, par, color, 'r', version, char)
 				node = par;
 				iter = node_get(tree, node, parent, version, node_t*);
 			} else {
@@ -286,13 +292,13 @@ void insert_fixup(persytree_t * tree, node_t * node){
 					rotate_right(tree, iter);
 					temp = node; node = iter; iter = temp;
 				}
-				node_set(tree, &iter, color, 'b', version, char);
-				node_set(tree, &par, color, 'r', version, char);
+				node_set(tree, iter, color, 'b', version, char);
+				node_set(tree, par, color, 'r', version, char);
 				rotate_left(tree, par);
 			}
 		}
 	}
-	node_set(tree, &tree->root[version], color, 'b', version, char);
+	node_set(tree, tree->root[version], color, 'b', version, char);
 }
 
 
@@ -317,8 +323,8 @@ void delete_fixup(persytree_t * tree, node_t * node){
 			if (w == NULL) break;
 			// CASE 1
 			if(w != NULL && node_get(tree, w, color, version, char) == 'r'){
-				node_set(tree, &w, color, 'b', version, char);
-				node_set(tree, &node_parent, color, 'r', version, char);
+				node_set(tree, w, color, 'b', version, char);
+				node_set(tree, node_parent, color, 'r', version, char);
 				rotate_left(tree, node_parent);
 				w =  node_get(tree, node_parent, right, version, node_t*);
 			}
@@ -334,7 +340,7 @@ void delete_fixup(persytree_t * tree, node_t * node){
 			if((left_w == NULL || node_get(tree, left_w, color, version, char) == 'b')
 				&& (right_w == NULL || node_get(tree, right_w, color, version, char) == 'b')){
 				assert(w!=NULL);
-				node_set(tree, &w, color, 'r', version, char);
+				node_set(tree, w, color, 'r', version, char);
 				node = node_parent;
 
 
@@ -343,9 +349,9 @@ void delete_fixup(persytree_t * tree, node_t * node){
 				assert(w != NULL);
 				if(right_w == NULL || node_get(tree, right_w, color, version, char) == 'b'){
 
-					node_set(tree, &left_w, color, 'b', version, char);
+					node_set(tree, left_w, color, 'b', version, char);
 
-					node_set(tree, &w, color, 'r', version, char);
+					node_set(tree, w, color, 'r', version, char);
 
 					rotate_right(tree, w);
 
@@ -358,13 +364,13 @@ void delete_fixup(persytree_t * tree, node_t * node){
 
 				char node_parent_color = node_get(tree, node_parent, color, version, char);
 
-				node_set(tree, &w, color, node_parent_color, version, char);
+				node_set(tree, w, color, node_parent_color, version, char);
 
-				node_set(tree, &node_parent, color, 'b', version, char);
+				node_set(tree, node_parent, color, 'b', version, char);
 
 				right_w = node_get(tree, w, right, version, node_t*);
 
-				node_set(tree, &right_w, color, 'b', version, char);
+				node_set(tree, right_w, color, 'b', version, char);
 
 
 				rotate_left(tree, node_parent);
@@ -379,8 +385,8 @@ void delete_fixup(persytree_t * tree, node_t * node){
 			if (w == NULL) break;
 			// CASE 1
 			if(w != NULL && node_get(tree, w, color, version, char) == 'r'){
-				node_set(tree, &w, color, 'b', version, char);
-				node_set(tree, &node_parent, color, 'r', version, char);
+				node_set(tree, w, color, 'b', version, char);
+				node_set(tree, node_parent, color, 'r', version, char);
 				rotate_right(tree, node_parent);
 				w =  node_get(tree, node_parent, left, version, node_t*);
 			}
@@ -396,7 +402,7 @@ void delete_fixup(persytree_t * tree, node_t * node){
 			if((right_w == NULL || node_get(tree, right_w, color, version, char) == 'b')
 				&& (left_w == NULL || node_get(tree, left_w, color, version, char) == 'b')){
 				assert(w!=NULL);
-				node_set(tree, &w, color, 'r', version, char);
+				node_set(tree, w, color, 'r', version, char);
 				node = node_parent;
 
 			} else {
@@ -404,10 +410,10 @@ void delete_fixup(persytree_t * tree, node_t * node){
 				assert(w != NULL);
 				if(left_w == NULL || node_get(tree, left_w, color, version, char) == 'b'){
 
-					node_set(tree, &right_w, color, 'b', version, char);
+					node_set(tree, right_w, color, 'b', version, char);
 
 
-					node_set(tree, &w, color, 'r', version, char);
+					node_set(tree, w, color, 'r', version, char);
 
 					rotate_left(tree, w);
 
@@ -419,13 +425,13 @@ void delete_fixup(persytree_t * tree, node_t * node){
 				assert(w!=NULL);
 				char node_parent_color = node_get(tree, node_parent, color, version, char);
 
-				node_set(tree, &w, color, node_parent_color, version, char);
+				node_set(tree, w, color, node_parent_color, version, char);
 
-				node_set(tree, &node_parent, color, 'b', version, char);
+				node_set(tree, node_parent, color, 'b', version, char);
 
 				left_w = node_get(tree, w, left, version, node_t*);
 
-				node_set(tree, &left_w, color, 'b', version, char);
+				node_set(tree, left_w, color, 'b', version, char);
 
 				rotate_right(tree, node_parent);
 
@@ -438,20 +444,25 @@ void delete_fixup(persytree_t * tree, node_t * node){
 
 
 	if(node != NULL){
-		node_set(tree, &node, color, 'b', version, char);
+		node_set(tree, node, color, 'b', version, char);
 	}
 
 }
 
 
-void persytree_node_set(persytree_t * tree, node_t ** nodeptr, ptrdiff_t member,
+void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 	                    void * value, unsigned version, size_t msize){
 	void * field;
-	node_t * node = *nodeptr;
 	assert(node != NULL);
 	while (node->next_version != NULL) { /** this avoids loosing  */
 		node = node->next_version;        /* track of the last    */
 	}									  /* version of the node **/
+	if (member >= offsetof(node_t, left) &&
+			member <= offsetof(node_t, parent)) {
+		node_t * nodeptr = *((node_t**)value);
+		while (nodeptr != NULL && nodeptr->next_version != NULL)
+			*((node_t**)value) = nodeptr = nodeptr->next_version;
+	}
 	if (node->created_at == version) {
 		memcpy(((char *) node) + member, value, msize);
 	} else {
@@ -497,29 +508,31 @@ void persytree_node_set(persytree_t * tree, node_t ** nodeptr, ptrdiff_t member,
 			int node_key = new->key;
 
 			memcpy(((char *) new) + member, value, msize);
-			*nodeptr = new;
 
 			/* modify pointers recursively */
 			node_t * left = new->left,
 				   * right = new->right,
 				   * parent = new->parent;
 			if (left != NULL) {
-				persytree_node_set(tree, &left, offsetof(node_t,parent),
+				persytree_node_set(tree, left, offsetof(node_t,parent),
 								   &new, version, sizeof(node_t*));
 			}
 			if (right != NULL) {
-				persytree_node_set(tree, &right, offsetof(node_t,parent),
+				persytree_node_set(tree, right, offsetof(node_t,parent),
 								   &new, version, sizeof(node_t*));
 			}
 			if (parent != NULL) {
 				node_t * left_sibling = node_get(tree, parent, left, version, node_t*);
+				node_t * right_sibling = node_get(tree, parent, right, version, node_t*);
 				if (node == left_sibling ||
 						(left_sibling != NULL &&
 						 node_key == node_get(tree, left_sibling, key, version, int))) {
-					persytree_node_set(tree, &parent, offsetof(node_t,left),
+					persytree_node_set(tree, parent, offsetof(node_t,left),
 								   &new, version, sizeof(node_t*));
-				} else {
-					persytree_node_set(tree, &parent, offsetof(node_t,right),
+				} else if (node == right_sibling ||
+						(right_sibling != NULL &&
+						 node_key == node_get(tree, right_sibling, key, version, int))) {
+					persytree_node_set(tree, parent, offsetof(node_t,right),
 								   &new, version, sizeof(node_t*));
 				}
 			} else {
