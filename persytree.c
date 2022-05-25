@@ -29,6 +29,7 @@ void transplant(persytree_t * tree, node_t * u, node_t * v);
 persytree_t * persytree_create(){
 	persytree_t * new = malloc(sizeof(persytree_t));
 	new->last_version = 0;
+	new->ninsert = 0;
 	new->root[0] = NULL;
 	return new;
 }
@@ -39,6 +40,7 @@ bool persytree_insert(persytree_t * tree, int key){
 	if (version == NVERSIONS) return (--tree->last_version) && false;
 	tree->root[version] = tree->root[version-1];
 	node_t * new = malloc(sizeof(node_t));
+	tree->nodeblock[tree->ninsert++] = new;
 	new->key = key; new->n_mods=0; new->next_version=NULL;
 	new->left=NULL; new->right=NULL; new->color='r';
 	new->created_at=version;
@@ -449,6 +451,20 @@ void delete_fixup(persytree_t * tree, node_t * node){
 
 }
 
+void persytree_destroy(persytree_t * tree) {
+	if (tree == NULL) return;
+	for (int i = 0; i < tree->ninsert; i++) {
+		node_t * node, * next;
+		node = tree->nodeblock[i];
+		while (node != NULL) {
+			next = node->next_version;
+			free(node);
+			node = next;
+		}
+	}
+	free(tree);
+}
+
 
 void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 	                    void * value, unsigned version, size_t msize){
@@ -491,11 +507,7 @@ void persytree_node_set(persytree_t * tree, node_t * node, ptrdiff_t member,
 		} else {
 			/* create new node. new node starts likes old */
 			node_t * new = malloc(sizeof(node_t));
-			new->key = node->key;
-			new->color = node->color;
-			new->left = node->left;
-			new->right = node->right;
-			new->parent = node->parent;
+			memcpy(new, node, offsetof(node_t,n_mods)); /* new = node */
 			new->n_mods=0;
 			new->created_at = version;
 			new->next_version = NULL;

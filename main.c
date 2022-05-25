@@ -80,9 +80,24 @@ void parse_file(FILE * file, persytree_t * dest, FILE * out){
 }
 
 int main(int argc, char *argv[]){
-	if (argc == 1) return EXIT_FAILURE;
+	if (argc < 2) {
+		printf("\nUsage: %s INPUT [OUTPUT]\n\n"
+				"  Read list of commands in INPUT and build a Partially persistent RB-Tree.\n"
+				"  OUTPUT default value is ./out.txt\n\n"
+				"Example:\n  %s random_data.txt output.txt\n\n"
+				"Commands accepted:\n"
+				"  INC n        Insert integer n in the tree.\n"
+			    "  REM n        Delete integer n from the tree\n"
+		        "  SUC n v      Find smaller integer bigger than n in the tree, at version v\n"
+			    "  IMP v        Print out all nodes of tree at version v in ascending order.\n"
+			    "               Nodes are printed as a tuple [Key,Height,Color]\n"
+				"               (without squared brackets).\n",
+		argv[0], argv[0]);
+		return EXIT_SUCCESS;
+	}
 	FILE * file = fopen(argv[1], "r");
 	if (file == NULL) {
+		fprintf(stderr,"Failed to read \'%s\'\n", argv[1]);
 		perror("Invalid argument");
 		return EXIT_FAILURE;
 	}
@@ -93,11 +108,13 @@ int main(int argc, char *argv[]){
 	else { path = defaultpath; }
 	FILE * output = fopen(path, "w");
 	parse_file(file, tree, output);
+	fclose(file);
+	fclose(output);
 
 	printf( "persytree_t size: %zu bytes\n"
 			"node_t size:      %zu bytes\n",
 			sizeof (*tree), sizeof(node_t));
 
-	free(tree);
+	persytree_destroy(tree);
 	return 0;
 }

@@ -16,8 +16,9 @@
  *  changes made to its content.
  */
 typedef struct persytree_t{
-	unsigned int last_version;
+	unsigned int last_version, ninsert;
 	struct node_t * root[NVERSIONS];
+	struct node_t * nodeblock[NVERSIONS]; /* only needed for tree destruction */
 } persytree_t;
 
 typedef struct mod_t {
@@ -43,7 +44,7 @@ typedef struct node_t {
 } node_t;
 
 persytree_t * persytree_create();
-/* void          persytree_destroy(persytree_t * tree); */
+void          persytree_destroy(persytree_t * tree);
 bool          persytree_insert(persytree_t * tree, int key);
 bool          persytree_delete(persytree_t * tree, int key);
 node_t *      persytree_search(persytree_t * tree, unsigned version, int key);
