@@ -1,0 +1,6 @@
+BasedOnStyle:     LLVM
+IndentWidth:      4
+TabWidth:         4
+UseTab:           AlignWithSpaces
+PointerAlignment: Middle
+ColumnLimit:      110

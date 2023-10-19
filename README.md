@@ -14,18 +14,24 @@ Leonardo Cavalcante de Abreu - 522379
 
 Definir o compilador no arquivo Makefile definindo a variável CC (`CC=clang` por exemplo).
 
-```
-$ make
+```shell
+make
 ```
 
 ## Usage
 
 ```shell
-$ ./main INPUT [OUTPUT]
+./main INPUT [OUTPUT]
 ```
 
 INPUT é o arquivo de entrada, e OUTPUT, o arquivo de saída. Exemplo:
 
 ```shell
-$ ./main random_data.txt output.txt
+./main random_data.txt output.txt
+```
+
+### Test
+
+```shell
+./main data/random_test_1.txt && cat out.txt
 ```
